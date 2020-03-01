@@ -12,8 +12,8 @@
 2. 
 
 # DONE:
-Roles
-Overall Project Manager: Pranay Byreddy
-Coding Manager: Zhengqi Dong
-Testing Manager: Yi Zhao
-Documentation: Trevor Shirey
+# Roles
+* Overall Project Manager: Pranay Byreddy
+* Coding Manager: Zhengqi Dong
+* Testing Manager: Yi Zhao
+* Documentation: Trevor Shirey
