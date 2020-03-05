@@ -6,7 +6,7 @@
 * (Drago)Zhengqi Dong: dong.760@osu.edu
 * Jae Han
 * Shuhan Shen
-* Yunxiao Wang
+* Yunxiao Wang: wang.9164@osu.edu
 
 # TO-DO:
 1. Decide the dataset for project? 
