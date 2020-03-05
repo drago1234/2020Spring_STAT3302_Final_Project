@@ -2,9 +2,12 @@
 
 # Description
 
+# Scientific Question:
+What sorts of people were more likely to survive the Titanic sinking?
+
 # Group members:
 * (Drago)Zhengqi Dong: dong.760@osu.edu
-* Jae Han
+* Jaehyun Han: han.1235@osu.edu
 * Shuhan Shen
 * Yunxiao Wang: wang.9164@osu.edu
 
