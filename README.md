@@ -2,7 +2,7 @@
 
 # Description
 
-#Group members:
+# Group members:
 * (Drago)Zhengqi Dong: dong.760@osu.edu
 * Jae Han
 * Shuhan Shen
