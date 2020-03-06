@@ -1,6 +1,36 @@
 # STAT3302_Final_Project (Due Friday, 4/17)
 
 # Description
+On April 15, 1912, during her maiden voyage, the widely considered “unsinkable” RMS Titanic sank after colliding with an iceberg. Unfortunately, there weren’t enough lifeboats for everyone onboard, resulting in the death of 1502 out of 2224 passengers and crew.
+
+While there was some element of luck involved in surviving, it seems some groups of people were more likely to survive than others.
+
+In this challenge, we ask you to build a predictive model that answers the question: “what sorts of people were more likely to survive?” using passenger data (ie name, age, gender, socio-economic class, etc).
+Variable description:  
+
+* Response: 
+    + Survived (contains your binary predictions: 1 for survived, 0 for deceased) 
+
+* Other variables 
+   + Continuous varaibles: Age, Fare
+   + Discrete variables: Sex, SibSp, pclass, Embarked
+   + Binary variable: Sex, Survived
+   + Factor variables: pclass, Sex, Embarked
+
+|Variable| Description|
+|:--------:|:----------|
+|PassengerId| (sorted in any order)|
+|pclass|	Ticket class	1 = 1st, 2 = 2nd, 3 = 3rd|
+|sex|	Sex	|
+|Age|	Age in years	|
+|sibsp|	# of siblings / spouses aboard the Titanic	|
+|parch|	# of parents / children aboard the Titanic	|
+|ticket|	Ticket number	|
+|fare|	Passenger fare	|
+|cabin|	Cabin number|	
+|embarked|	Port of Embarkation	C = Cherbourg, Q = Queenstown, S = Southampton|
+
+Note: There are total 11 columns, excluded the Survived as response. However, not all the varaible are useful for prediction, some of them just use for identification purpose, such as PassengerId, Name and ticket. Thus, only the following varaibles will be consider for our suvival prediction purpose: Pclass, Sex, Age, SibSp, Parch, Fare, Embarked.
 
 # Scientific Question:
 What sorts of people were more likely to survive the Titanic sinking?
@@ -10,6 +40,9 @@ What sorts of people were more likely to survive the Titanic sinking?
 * Jaehyun Han: han.1235@osu.edu
 * Shuhan Shen: shen.998@osu.edu
 * Yunxiao Wang: wang.9164@osu.edu
+
+# Reference
+* Source of dataset: https://www.kaggle.com/c/titanic/data
 
 # TO-DO:
 3. What covariates are useful for answering our question? (Plot the graph and give an graphical summary)
