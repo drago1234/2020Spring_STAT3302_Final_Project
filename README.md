@@ -12,16 +12,21 @@ What sorts of people were more likely to survive the Titanic sinking?
 * Yunxiao Wang: wang.9164@osu.edu
 
 # TO-DO:
+3. What covariates are useful for answering our question? (Plot the graph and give an graphical summary)
+4. Model comparison (Which model has the best "Performance"?)
+5. Does the models fit well? Explain why?
+6. EDA(Exploratory Data Analysis)
+7. Processing data: 1) Clear out missing value.
+* Option:
+   + Cross validation
+   + Train, Tune and Ensemble machine learning models
+
+
+# DONE:
 1. Decide the dataset for project? 
     * Analysis must involves Logistic/Poisson regression model. 
     * Should have enough covariates to make an intersting statistical analysis(Q: What does enought means?)
 2. The scientific questions to ask?
-3. What covariates are useful for answering our question? (Plot the graph and give an graphical summary)
-4. Model comparison (Which model has the best "Performance"?)
-5. Does the models fit well? Explain why?
-
-
-# DONE:
 
 # Checking list: (Based on Project description)
 1. Make sure that you write down a scientific question for your group to answer in your
