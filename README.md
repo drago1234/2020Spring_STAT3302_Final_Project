@@ -16,7 +16,7 @@ What sorts of people were more likely to survive the Titanic sinking?
 4. Model comparison (Which model has the best "Performance"?)
 5. Does the models fit well? Explain why?
 6. EDA(Exploratory Data Analysis)
-7. Processing data: 1) Clear out missing value.
+7. Processing data: 1) Clean out missing value.
 * Option:
    + Cross validation
    + Train, Tune and Ensemble machine learning models
