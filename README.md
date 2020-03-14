@@ -1,5 +1,11 @@
 # STAT3302_Final_Project (Due Friday, 4/17)
 
+# Group members:
+* (Drago)Zhengqi Dong: dong.760@osu.edu
+* Jaehyun Han: han.1235@osu.edu
+* Shuhan Shen: shen.998@osu.edu
+* Yunxiao Wang: wang.9164@osu.edu
+
 # Description
 On April 15, 1912, during her maiden voyage, the widely considered “unsinkable” RMS Titanic sank after colliding with an iceberg. Unfortunately, there weren’t enough lifeboats for everyone onboard, resulting in the death of 1502 out of 2224 passengers and crew.
 
@@ -35,15 +41,6 @@ Note: There are total 11 columns, excluded the Survived as response. However, no
 
 # Scientific Question:
 What sorts of people were more likely to survive the Titanic sinking?
-
-# Group members:
-* (Drago)Zhengqi Dong: dong.760@osu.edu
-* Jaehyun Han: han.1235@osu.edu
-* Shuhan Shen: shen.998@osu.edu
-* Yunxiao Wang: wang.9164@osu.edu
-
-# Reference
-* Source of dataset: https://www.kaggle.com/c/titanic/data
 
 # TO-DO:
 3. What covariates are useful for answering our question? (Plot the graph and give an graphical summary)
@@ -81,3 +78,5 @@ tables and make sure to discuss your results in the text of the report.
 8. Make sure that all students contribute equally in your group. Each student in a group will
 be assigned the same grade.
 
+# Reference
+* Source of dataset: https://www.kaggle.com/c/titanic/data
