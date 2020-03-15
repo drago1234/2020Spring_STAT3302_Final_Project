@@ -1,0 +1,83 @@
+---
+title: 'Stat 3302: Final Project'
+author: "Zhengqi Dong"
+date: "3/14/2020"
+output:
+  html_document: default
+  pdf_document: 
+    latex_engine: xelatex
+---
+
+```{r setup, include=FALSE}
+# You can load libraries here if you want
+library(tidyverse)
+library(broom)
+library(readr)
+# This allows you to set default behavior for R chunks
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Define the function to be used:
+```{r}
+## Define the logit function.
+logit <- function (p) 
+{
+  log(p / (1 - p))
+}
+
+## Define the inverse logit function.
+sigmoid <- function (etas) 
+{
+  exp(etas) / (1 + exp(etas))
+}
+
+```
+
+Import data:
+```{r include=F, echo=F}
+Titanic_train <- read_csv("Titanic.train.csv")
+```
+
+Process data:
+
+
+```{r}
+head(Titanic_train)
+```
+
+
+## Scientific question: What sorts of people were more likely to survive the Titanic sinking?
+
+## Plot the graph, and summarize your graphs 
+
+##Step1: Build a simple logistic model (without interaction) 
+
+### a) Produce a table including the pclass factor variable, number of passenger survived(survival=1) in each class, and the total number of passenger in each class(survival=1 or 0)
+
+### b.1) Produce a graphical summary that display the relationship between the probability of survival and the factor variable pclass. 
+
+### b.2) Produce a graphical summary that display the relationship between the logit of the probability of survival and the factor variable pclass. 
+
+### c) Fit a model that estimates the logit of the probability of survival in terms of pclass factor variables. Write out the assumed model and define your notation.
+
+### d) Summarize the fitted model and analysis of deviance table.
+
+### e) Discuss the result and idea, is this model help us to understand the scientific question? (What sorts of people were more likely to survive.)
+
+### f) (Option)Interpret this statistical model in terms of changes of the odds with appropriate confidence interval (including at least one confidence intervals for the quantities that you estimated.)
+
+
+## Step2: Do the same things in terms of factor variable gender
+
+### g)Compare the factor model from above with the model from Step1, using deviance, AICs, and residual plots, which model do you prefer? Why?
+
+## Step3: Do the same things in terms of factor variable Embarked
+
+## Step4: Do the same things in terms of continuous variable age
+
+## Step5: Do the same things in terms of continuous variable fare
+
+## Conclusion: Compare the models from previous step, using deviance, AICs, and residual plots, which model do you prefer? Why?
+
+## Appendix (The R code you need to support previous argument, not counted in the 5–6 page limit)
+
