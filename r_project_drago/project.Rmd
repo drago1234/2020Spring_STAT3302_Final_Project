@@ -1,0 +1,314 @@
+---
+title: 'Stat 3302: Final Project'
+author: "Zhengqi Dong"
+date: "3/14/2020"
+output:
+  html_document: default
+  pdf_document: 
+    latex_engine: xelatex
+---
+
+## 1. Importing library, defining function, and checking data
+```{r setup, include=FALSE}
+# Basic package
+library(tidyverse)
+library(broom)
+library(readr)
+library(ggplot2)
+# Advanced(Fancy) package
+library(ggthemes)
+library(gridExtra)
+# This allows you to set default behavior for R chunks
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+Import data:
+```{r include=F, echo=F}
+train <- read.csv("train.csv", stringsAsFactors = F)
+test <- read.csv('test.csv', stringsAsFactors = F)
+full  <- bind_rows(train, test) # bind training & test data
+```
+
+```{r}
+str(train)
+str(test)
+str(full)
+```
+Our training dataset contains 891 observation and 12 variable; testing dataset contains 418 observation with missed variable “Survived” (That's the variable we want to predict with for testing dataset); full dataset contains 1309 observation and 12 variables.
+## 2. EDA
+
+### 2.1 Age
+
+```{r}
+# Age vs Survived
+ggplot(full[1:891,], aes(Age, fill = factor(Survived))) + 
+  theme_few()+
+  geom_histogram(bins=30) + 
+  ggtitle("Age vs Survived")
+```
+Note: 1)People who are in range between 20 to 50 are less likely being survived, and the people who below age 10 are very likely being survived. 2)The distribution of age looks like a right skewed.
+
+### 2.2 Sex
+```{r}
+# Sex vs Survived
+ggplot(full[1:891,], aes(Sex, fill = factor(Survived))) + 
+  geom_bar(stat = "count", position = 'dodge')+
+  xlab("Sex") +
+  ggtitle("Sex vs Survived") +
+  geom_label(stat='count',aes(label=..count..))+
+  scale_fill_discrete(name = "Survived") # For the label in the right
+```
+Note: 1)female is more likely being survived than male, femail survived rate roughly 75%, and male is roughly 16.7%, so almost 5 time greater!
+
+### 2.3 Age Vs Sex
+```{r}
+#Sex vs Survived vs Age 
+ggplot(full[1:891,], aes(Age, fill = factor(Survived))) + 
+  geom_histogram(bins=30) + 
+  xlab("Age") +
+  ggtitle("Age vs Sex vs Survived") +
+  scale_fill_discrete(name = "Survived") # For the label in the right
+```
+Note: 1) Again, female is more likely being survived than male. 2) The differences between the number of peoples survived and not survived is largest at roughly age 20to30, and this is true for both female and male.
+
+### 2.4. Pclass vs Sex
+```{r}
+# Pclass vs Survived
+p1 <- ggplot(full[1:891,], aes(Pclass, fill = factor(Survived))) + 
+  geom_bar(stat = "count")+
+  theme_few() +
+  xlab("Pclass") +
+  facet_grid(.~Sex)+
+  ggtitle("Pclass vs Sex vs Survived") +
+  geom_label(stat='count',aes(label=..count..)) +
+  scale_fill_discrete(name = "Survived") # For the label in the right
+
+p2 <- ggplot(full[1:891,], aes(x = Pclass, fill = factor(Survived))) +
+  geom_bar(stat='count', position='fill') +
+  labs(x = 'Training data only', y= "Percent") + 
+  facet_grid(.~Sex) +
+  theme(legend.position="none")
+grid.arrange(p1, p2, ncol=2)
+```
+Note: 1) female is more likely of being survived than male in average. 2)In female group, majority passengers in class 1 and class 2 are survived, and more people in classed died. However, in male group, the survived rate in class 2 (~18.7%) just as bad as class 3(~15.67%). 
+
+
+## 3. Processing data and Further EDA
+Notices, there are some useful infromation in assenger name, what is it? 1)the passenger title!(e.g. Ms, Miss, Mrs..) So, with that being said, we can use to ask some question like, is there any relationship between the passenger title and probability of survived?
+2) The surname can be useful as well. It allow us to use "surname" to represent a families. Using the sum of "sibsp" and "parch" as a new variable, we can evaluate the relationship between family size and the probabilty of being survived!
+
+### 3.1 Feature Engineer work:
+```{r}
+# Grab title from passenger names
+full$Title <- gsub('(.*, )|(\\..*)', '', full$Name)
+
+cat("Show title counts by sex:")
+table(full$Sex, full$Title)
+# kable(table(full$Sex, full$Title)) # A fance table for html presentation
+
+# Titles with very low cell counts to be combined to "rare" level
+rare_title <- c('Dona', 'Lady', 'the Countess','Capt', 'Col', 'Don', 
+                'Dr', 'Major', 'Rev', 'Sir', 'Jonkheer')
+
+# Also reassign mlle, ms, and mme accordingly
+full$Title[full$Title == 'Mlle']        <- 'Miss' 
+full$Title[full$Title == 'Ms']          <- 'Miss'
+full$Title[full$Title == 'Mme']         <- 'Mrs' 
+full$Title[full$Title %in% rare_title]  <- 'Rare Title'
+
+cat("\nShow title counts by sex after merged title has very few count in the data: ") 
+table(full$Sex, full$Title)
+
+# Finally, grab surname from passenger name
+full$Surname <- sapply(full$Name,  
+                      function(x) strsplit(x, split = '[,.]')[[1]][1])
+cat("\nHead of full$Surname:\n")
+head(full$Surname)
+```
+
+### 3.2 Title Vs Survived
+```{r}
+ggplot(full[1:891,], aes(x = Title, fill = factor(Survived))) +
+  geom_bar(stat='count', position='stack') +
+  ggtitle("Title Vs Survived") +
+  geom_label(stat='count',aes(label=..count..)) +
+  scale_fill_discrete(name = "Survived") # For the label in the right
+```
+Note: we see the Mr. "Mr" are died pretty badly, which proved our previous observation that male are less likely being survived than female.
+
+### 3.3 Family size Vs Survived
+Create variable Fsize, which is sum of the number of siblings/spouses and number of chldren/parens and one(The person himself)
+```{r}
+# Create a family size variable including the passenger themselves
+full$Fsize <- full$SibSp + full$Parch + 1
+
+# Create a family variable 
+full$Family <- paste(full$Surname, full$Fsize, sep='_')
+head(full$Family)
+```
+
+
+```{r}
+# Use ggplot2 to visualize the relationship between family size & survival
+ggplot(full[1:891,], aes(x = Fsize, fill = factor(Survived))) +
+  geom_bar(stat='count', position='dodge') +
+  scale_x_continuous(breaks=c(1:11)) +
+  ggtitle("Family size Vs Survived") + 
+  labs(x = 'Family Size') +
+  # geom_label(stat='count',aes(label=..count..)) +
+  scale_fill_discrete(name = "Survived") # For the label in the right
+
+```
+Note: By comparing the "family size" and "Survived" the singleton, familes sizes 1, and large families (size > 5) are less likely being survived
+
+
+
+
+
+## Scientific question: What sorts of people were more likely to survive the Titanic sinking?
+
+## Plot the graph, and summarize your graphs 
+
+
+
+## 4. Simple Logistic model: 
+Produce a table including the pclass factor variable, number of passenger survived(survival=1) in each class, and the total number of passenger in each class(survival=1 or 0)
+
+Response variable:
+  - survived (0 == died, 1 == survived)
+Explanatory variables/covaraite of interest:
+ - Pclass
+ - Sex
+ - Age
+ - Fsize
+ 
+Define the function to be used:
+```{r}
+## Define the logit function.
+logit <- function (p) 
+{
+  log(p / (1 - p))
+}
+
+## Define the inverse logit function.
+sigmoid <- function (etas) 
+{
+  exp(etas) / (1 + exp(etas))
+}
+
+```
+
+### 4.1 Redefined the varaible to factor: 
+Because the purpose of this project is to build a logistic regression model(binary), in order to make the varaible "Fsize" to be more useful and easier to deal with, we need to convert them to factor!
+
+
+```{r include=F}
+# Convert Fsize to factor variable
+full$Fsize[full$Fsize>=5] <- 'large_family' #THis must go first, otherwise it won't work
+full$Fsize[full$Fsize==1] <- 'solo'
+full$Fsize[full$Fsize==2] <- 'double'
+full$Fsize[full$Fsize==3] <- 'Fsize_3'
+full$Fsize[full$Fsize==4] <- 'Fsize_4'
+full$Fsize <- as.factor(full$Fsize)
+```
+
+```{r}
+train <- full[1:891,]
+## define 'Survived' to be 1 if any passenger survived; 0 if died
+train$Survived <- as.numeric(train$Survived == 1)
+
+
+## define the variable 'Sex'
+## is 0 if Sex is light medium or medium.
+## is 1 if color is dark medium or dark.
+# Sex <- factor(ifelse(crabs$color <= 2, "not dark", "dark"))
+train$Sex <- factor(train$Sex)
+
+## Redefine the Pclass factor variable ordered as
+## 1: Class_1, 2: Class_2, 3: Class_3, Otherwise: Error.
+## (factors by default are ordered alphabetically)
+train$Pclass <-
+  factor(ifelse(train$Pclass==1, "Class_1",
+                ifelse(train$Pclass==2, "Class_2",
+                       ifelse(train$Pclass==3, "Class_3", "Error"))),
+         levels=c("Class_1", "Class_2", "Class_3"))
+
+## Redefine the Fsize factor variable ordered as
+## 1: solo, 2: double, 3: Fsize_3, 4: Fsize_4, 5: large_family
+## (factors by default are ordered alphabetically)
+# train$Fsize <-
+#   factor(ifelse(train$Fsize==1, "solo",
+#             ifelse(train$Fsize==2, "double",
+#               ifelse(train$Fsize==3, "Fsize_3",
+#                 ifelse(train$Fsize==4, "Fsize_4", "large_family")))),
+#          levels=c("solo", "double", "Fsize_3", "Fsize_4", "large_family"))
+
+# Alternatively: 
+train$Fsize[train$Fsize>=5] <- 'large_family' #THis must go first, otherwise it won't work
+train$Fsize[train$Fsize==1] <- 'solo'
+train$Fsize[train$Fsize==2] <- 'double'
+train$Fsize[train$Fsize==3] <- 'Fsize_3'
+train$Fsize[train$Fsize==4] <- 'Fsize_4'
+train$Fsize <- as.factor(train$Fsize)
+```
+
+
+```{r}
+ggplot(train[!is.na(full$Survived),], aes(x = Fsize, fill = factor(Survived))) +
+  geom_bar(stat='count', position='dodge') +
+  ggtitle("Family size Vs Survived") + 
+  labs(x = 'Family Size') +
+  # geom_label(stat='count',aes(label=..count..)) +
+  scale_x_discrete (limits = c('solo', 'double', 'Fsize_3', 'Fsize_4', 'large_family')) +
+  scale_fill_discrete(name = "Survived") # For the label in the right
+```
+
+### 4.2 SLLR on Survived~Sex
+
+```{r}
+# show the table of counts
+count_table <- table(full$Sex, full$Survived)
+count_table
+```
+
+```{r}
+# show the table of proportions: p_ij = r_ij/(r_i + r_j): 
+round(count_table / apply(count_table, 1, sum), 3)
+```
+
+```{r}
+# fit the glm with Sex: 
+Survived_model1 <- glm(Survived ~ Sex, family=binomial)
+summary(Survived_model1)
+anova(Survived_model1, test="Chisq")
+```
+### 4.3 SLLR on Survived~
+
+### b.1) Produce a graphical summary that display the relationship between the probability of survival and the factor variable pclass. 
+
+### b.2) Produce a graphical summary that display the relationship between the logit of the probability of survival and the factor variable pclass. 
+
+### c) Fit a model that estimates the logit of the probability of survival in terms of pclass factor variables. Write out the assumed model and define your notation.
+
+### d) Summarize the fitted model and analysis of deviance table.
+
+### e) Discuss the result and idea, is this model help us to understand the scientific question? (What sorts of people were more likely to survive.)
+
+### f) (Option)Interpret this statistical model in terms of changes of the odds with appropriate confidence interval (including at least one confidence intervals for the quantities that you estimated.)
+
+
+## Step2: Do the same things in terms of factor variable gender
+
+### g)Compare the factor model from above with the model from Step1, using deviance, AICs, and residual plots, which model do you prefer? Why?
+
+## Step3: Do the same things in terms of factor variable Embarked
+
+## Step4: Do the same things in terms of continuous variable age
+
+## Step5: Do the same things in terms of continuous variable fare
+
+## Conclusion: Compare the models from previous step, using deviance, AICs, and residual plots, which model do you prefer? Why?
+
+## Appendix (The R code you need to support previous argument, not counted in the 5–6 page limit)
+
