@@ -73,4 +73,7 @@ summary(crabs.color)
 anova(crabs.color, test="Chisq")
 
 
+plot(sort(unique(rounded.weight)), prop.weight,
+     xlab="weight (to nearest 0.5kg)", ylab="proportion")
+
 

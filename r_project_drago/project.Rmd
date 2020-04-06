@@ -38,18 +38,19 @@ str(full)
 Our training dataset contains 891 observation and 12 variable; testing dataset contains 418 observation with missed variable “Survived” (That's the variable we want to predict with for testing dataset); full dataset contains 1309 observation and 12 variables.
 ## 2. EDA
 
-### 2.1 Age
+### 2.1 Age vs Survived
 
 ```{r}
 # Age vs Survived
 ggplot(full[1:891,], aes(Age, fill = factor(Survived))) + 
   theme_few()+
   geom_histogram(bins=30) + 
-  ggtitle("Age vs Survived")
+  ggtitle("Age vs Survived") + 
+  scale_fill_discrete(name = "Survived") # For the label in the right
 ```
 Note: 1)People who are in range between 20 to 50 are less likely being survived, and the people who below age 10 are very likely being survived. 2)The distribution of age looks like a right skewed.
 
-### 2.2 Sex
+### 2.2 Sex Vs Survive
 ```{r}
 # Sex vs Survived
 ggplot(full[1:891,], aes(Sex, fill = factor(Survived))) + 
@@ -61,23 +62,29 @@ ggplot(full[1:891,], aes(Sex, fill = factor(Survived))) +
 ```
 Note: 1)female is more likely being survived than male, femail survived rate roughly 75%, and male is roughly 16.7%, so almost 5 time greater!
 
-### 2.3 Age Vs Sex
+### 2.3 Age Vs Sex Vs Survived
 ```{r}
 #Sex vs Survived vs Age 
 ggplot(full[1:891,], aes(Age, fill = factor(Survived))) + 
-  geom_histogram(bins=30) + 
+  geom_histogram(bins=30) + # bins: controls the width of bar, so larger the thinner. You can use geom_bar() if you don't want to specify it!
   xlab("Age") +
+  facet_grid(.~Sex)+
   ggtitle("Age vs Sex vs Survived") +
+  # geom_label(stat='count',aes(label=..count..)) +
   scale_fill_discrete(name = "Survived") # For the label in the right
+
 ```
 Note: 1) Again, female is more likely being survived than male. 2) The differences between the number of peoples survived and not survived is largest at roughly age 20to30, and this is true for both female and male.
 
 ### 2.4. Pclass vs Sex
 ```{r}
-# Pclass vs Survived
+# geom_bar vs geom_hist: 
+#   - Bar charts provide a visual presentation of categorical data
+#   - Histograms are used to plot the distribution of data
+
+# Pclass vs Sex Vs Survived
 p1 <- ggplot(full[1:891,], aes(Pclass, fill = factor(Survived))) + 
-  geom_bar(stat = "count")+
-  theme_few() +
+  geom_bar(stat='count') + 
   xlab("Pclass") +
   facet_grid(.~Sex)+
   ggtitle("Pclass vs Sex vs Survived") +
@@ -86,7 +93,7 @@ p1 <- ggplot(full[1:891,], aes(Pclass, fill = factor(Survived))) +
 
 p2 <- ggplot(full[1:891,], aes(x = Pclass, fill = factor(Survived))) +
   geom_bar(stat='count', position='fill') +
-  labs(x = 'Training data only', y= "Percent") + 
+  labs(x = 'Passenger class', y= "Percent") + 
   facet_grid(.~Sex) +
   theme(legend.position="none")
 grid.arrange(p1, p2, ncol=2)
@@ -160,19 +167,15 @@ ggplot(full[1:891,], aes(x = Fsize, fill = factor(Survived))) +
   scale_fill_discrete(name = "Survived") # For the label in the right
 
 ```
-Note: By comparing the "family size" and "Survived" the singleton, familes sizes 1, and large families (size > 5) are less likely being survived
+Note: By comparing the "family size" and "Survived", we noticed the singleton, familes sizes 1, and large families (size > 5) are less likely being survived than the family with size between 2 and 4. Keep this in mind, that might be something we want to use in building our regression model.
 
 
 
 
 
-## Scientific question: What sorts of people were more likely to survive the Titanic sinking?
-
-## Plot the graph, and summarize your graphs 
 
 
-
-## 4. Simple Logistic model: 
+## 4. SLLR pairwised: 
 Produce a table including the pclass factor variable, number of passenger survived(survival=1) in each class, and the total number of passenger in each class(survival=1 or 0)
 
 Response variable:
@@ -199,19 +202,9 @@ sigmoid <- function (etas)
 
 ```
 
-### 4.1 Redefined the varaible to factor: 
-Because the purpose of this project is to build a logistic regression model(binary), in order to make the varaible "Fsize" to be more useful and easier to deal with, we need to convert them to factor!
+### 4.1 Redefined the Fsize to factor: 
+Because the purpose of this project is to build a logistic regression model(binary), in order to make the varaible "Fsize" to be more useful and easier to deal with, we need to convert it to factor! (as well as other categorical variables. Factor just a nice data type in R, that is design for categorical variable.)
 
-
-```{r include=F}
-# Convert Fsize to factor variable
-full$Fsize[full$Fsize>=5] <- 'large_family' #THis must go first, otherwise it won't work
-full$Fsize[full$Fsize==1] <- 'solo'
-full$Fsize[full$Fsize==2] <- 'double'
-full$Fsize[full$Fsize==3] <- 'Fsize_3'
-full$Fsize[full$Fsize==4] <- 'Fsize_4'
-full$Fsize <- as.factor(full$Fsize)
-```
 
 ```{r}
 train <- full[1:891,]
@@ -245,7 +238,7 @@ train$Pclass <-
 #          levels=c("solo", "double", "Fsize_3", "Fsize_4", "large_family"))
 
 # Alternatively: 
-train$Fsize[train$Fsize>=5] <- 'large_family' #THis must go first, otherwise it won't work
+train$Fsize[train$Fsize>=5] <- 'large_family' # THis must go first, otherwise it won't work
 train$Fsize[train$Fsize==1] <- 'solo'
 train$Fsize[train$Fsize==2] <- 'double'
 train$Fsize[train$Fsize==3] <- 'Fsize_3'
@@ -255,6 +248,7 @@ train$Fsize <- as.factor(train$Fsize)
 
 
 ```{r}
+# Fsize Vs Survived
 ggplot(train[!is.na(full$Survived),], aes(x = Fsize, fill = factor(Survived))) +
   geom_bar(stat='count', position='dodge') +
   ggtitle("Family size Vs Survived") + 
@@ -264,11 +258,53 @@ ggplot(train[!is.na(full$Survived),], aes(x = Fsize, fill = factor(Survived))) +
   scale_fill_discrete(name = "Survived") # For the label in the right
 ```
 
-### 4.2 SLLR on Survived~Sex
+### 4.2 SLLR on Survived~Age
+```{r eval=FALSE, include=FALSE}
+rounded_age <- round(train$Age*2)/2
+count_table <- table(rounded_age, train$Survived)
+prob_survived <- round(count_table / apply(count_table, 1, sum), 3)[,2]
+```
+
+```{r eval=FALSE, include=FALSE}
+
+plot(sort(unique(rounded_age)), logit(prob_survived),
+     xlab="weight (to nearest 0.5kg)", ylab="proportion")
+```
+
+
+```{r}
+Survived_model1 <- glm(train$Survived ~ train$Age, family=binomial)
+summary(Survived_model1)
+anova(Survived_model1, test="Chisq")
+```
+p-value(>|Z|) tells us, the coefficient for age is sig different from zero, and has a negative relationship with survived. The pr(>Chi) tells us it's useful to include Age into our model!
+
+### 4.3 SLLR on Survived~Sex
 
 ```{r}
 # show the table of counts
-count_table <- table(full$Sex, full$Survived)
+count_table <- table(train$Sex, train$Survived)
+count_table
+```
+
+```{r}
+# show the table of proportions: p_ij = r_ij/(r_i + r_j): 
+round(count_table / apply(count_table, 1, sum), 3)
+```
+En, looks like female has a high probability of being survived!
+
+```{r}
+# fit the glm with Sex: 
+Survived_model1 <- glm(train$Survived ~ train$Sex, family=binomial)
+summary(Survived_model1)
+anova(Survived_model1, test="Chisq")
+```
+p-value(>|Z|) tells us, the coefficient for age is sig different from zero, and the expected probability of being survived for male is $e^{-2.5137} * 100% = 8.097% $ less than the female in average. The pr(>Chi) tells us it's useful to include sex into our model!
+
+### 4.4 SLLR on Survived~Pclass
+```{r}
+# show the table of counts
+count_table <- table(train$Pclass, train$Survived)
 count_table
 ```
 
@@ -279,11 +315,53 @@ round(count_table / apply(count_table, 1, sum), 3)
 
 ```{r}
 # fit the glm with Sex: 
-Survived_model1 <- glm(Survived ~ Sex, family=binomial)
+Survived_model1 <- glm(train$Survived ~ train$Pclass, family=binomial)
 summary(Survived_model1)
 anova(Survived_model1, test="Chisq")
 ```
-### 4.3 SLLR on Survived~
+
+
+### 4.5 SLLR on Survived~Fsize
+```{r}
+# show the table of counts
+count_table <- table(train$Fsize, train$Survived)
+count_table
+```
+
+```{r}
+# show the table of proportions: p_ij = r_ij/(r_i + r_j): 
+round(count_table / apply(count_table, 1, sum), 3)
+```
+
+```{r}
+# fit the glm with Sex: 
+Survived_model1 <- glm(train$Survived ~ train$Fsize, family=binomial)
+summary(Survived_model1)
+anova(Survived_model1, test="Chisq")
+```
+
+### 4.6 SLLR on Survived~Age + Sex + Pclass + Fsize
+```{r}
+Survived_model1 <- glm(train$Survived ~ train$Age + train$Sex + train$Pclass + train$Fsize, family=binomial)
+summary(Survived_model1)
+anova(Survived_model1, test="Chisq")
+```
+
+
+## 5. SLLP with interaction terms
+```{r}
+Survived_model1 <- glm(train$Survived ~ train$Age * train$Sex * train$Pclass * train$Fsize, family=binomial)
+summary(Survived_model1)
+anova(Survived_model1, test="Chisq")
+```
+
+
+## 6. Making prediction
+
+
+## Scientific question: What sorts of people were more likely to survive the Titanic sinking?
+
+## Step 1: EDA
 
 ### b.1) Produce a graphical summary that display the relationship between the probability of survival and the factor variable pclass. 
 

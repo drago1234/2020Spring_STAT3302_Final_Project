@@ -23,6 +23,15 @@ res.glm01=glm(hiro.mat~x,family=binomial(link = "logit"))
 summary(res.glm01)
 
 
+
+# Convert Fsize to factor variable
+full$Fsize[full$Fsize>=5] <- 'large_family' #THis must go first, otherwise it won't work
+full$Fsize[full$Fsize==1] <- 'solo'
+full$Fsize[full$Fsize==2] <- 'double'
+full$Fsize[full$Fsize==3] <- 'Fsize_3'
+full$Fsize[full$Fsize==4] <- 'Fsize_4'
+full$Fsize <- as.factor(full$Fsize)
+
 plot(x=full[1:891,]$Pclass, y=(sum(full[1:891,]$Survived==0)/dim(full)[1]),xla="midpoint", ylab = "prop of success = y/n")
 
 
@@ -41,3 +50,32 @@ full[1:891,] %>%
   summarise(number=n()) %>% 
   mutate(prop = (number/sum(number))) %>% filter(Survived==1)
   
+
+
+rounded.weight <- round(train$Age*2)/2
+survive_table  <- table(train$Age, train$Survived)
+prop.weight <- (survive_table/rowSums(table.weight))[,2]
+
+
+
+
+plot(sort(unique(rounded.weight)), prop.weight,
+     xlab="weight (to nearest 0.5kg)", ylab="proportion")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
