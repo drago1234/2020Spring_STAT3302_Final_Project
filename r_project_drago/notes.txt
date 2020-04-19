@@ -1,0 +1,43 @@
+Survived_age_model
+summary(Survived_age_model)
+anova(Survived_age_model, test="Chisq")
+
+summary(Survived_sex_model)
+anova(Survived_sex_model, test="Chisq")
+
+summary(Survived_pclass_model)
+anova(Survived_pclass_model, test="Chisq")
+
+summary(Survived_Fsize_model)
+anova(Survived_Fsize_model, test="Chisq")
+
+summary(Survived_title_model)
+anova(Survived_title_model, test="Chisq")
+
+Let's summarize the AIC for the above models: 
+* Survived~Age: 960.23
+    Null deviance: 1186.7  on 890  degrees of freedom
+Residual deviance: 1185.6  on 889  degrees of freedom
+AIC: 1189.6
+* Survived~Sex: 921.8
+    Null deviance: 1186.7  on 890  degrees of freedom
+Residual deviance:  917.8  on 889  degrees of freedom
+AIC: 921.8
+* Survived~Pclass: 1089.1
+    Null deviance: 1186.7  on 890  degrees of freedom
+Residual deviance: 1083.1  on 888  degrees of freedom
+AIC: 1089.1
+* Survived~Fsize: 1118.5
+    Null deviance: 1186.7  on 890  degrees of freedom
+Residual deviance: 1108.5  on 886  degrees of freedom
+AIC: 1118.5
+* Survived~Title: 886.59
+    Null deviance: 1186.66  on 890  degrees of freedom
+Residual deviance:  886.59  on 886  degrees of freedom
+AIC: 896.59
+* Survived~Age + Sex: AIC: 923.8
+    Null deviance: 1186.66  on 890  degrees of freedom
+Residual deviance:  917.79  on 888  degrees of freedom
+AIC: 923.79
+
+

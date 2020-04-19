@@ -25,6 +25,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ### 1.1 Import dataset:
 ```{r include=F, echo=F}
+set.seed(1)
 train <- read.csv("train.csv", stringsAsFactors = F)
 test <- read.csv('test.csv', stringsAsFactors = F)
 full  <- bind_rows(train, test) # bind training & test data
@@ -61,10 +62,9 @@ ggplot(full[1:891,], aes(Age, fill = factor(Survived))) +
   ggtitle("Age vs Survived") + 
   scale_fill_discrete(name = "Survived") # For the label in the right
 ```
-Note: 1)People who are in range between 20 to 50 are less likely being survived, and the people who below age 10 are very likely being survived. 2)The distribution of age looks like a right skewed.
+Note: 1)People who are in range between 20 to 50 are less likely being survived, and the people who below age 10 are more likely being survived. 2)The distribution of age looks like a right skewed distribution.
 
-The warning tell us, there are 177 missing value. So, let's imputing those missing age values. One way to do this is to create a model that predicts the ages based on other variables. There are many package can do the prediction, such as rpart(recursive partitioning for regression), and mice(Multivariate Imputation by Chained Equations). [reference for mice](http://www.jstatsoft.org/article/view/v045i03/v45i03.pdf)
-Let's try the mice: 
+The warning tell us, there are 177 missing value. So, let's imputing those missing age values. There are many way to take care the missing value, such as remove the data, or filling with zero or NaN. But, we can do better than that. A decent way to do this is to create a model that predicts the average ages based on other variables. There are many package can do this interpolation, such as rpart(recursive partitioning for regression), and mice(Multivariate Imputation by Chained Equations). [reference for mice](http://www.jstatsoft.org/article/view/v045i03/v45i03.pdf). Let's try the mice library: 
 ```{r}
 library('mice') # imputation
 # Show number of missing Age values in training set
@@ -94,7 +94,7 @@ full$Age <- mice_output$Age
 # Show new number of missing Age values
 sum(is.na(full$Age))
 ```
-
+Now, the missing value is gone!
 
 ### 2.2 Sex Vs Survive
 ```{r}
@@ -162,7 +162,6 @@ ggplot(embark_fare, aes(x = Embarked, y = Fare, fill = factor(Pclass))) +
   colour='red', linetype='dashed', lwd=2) +
   theme_few()
 
-
 ```
 Notice that missing value in the marning message:
 ```{r}
@@ -182,12 +181,15 @@ train$Embarked[c(62, 830)] <- c("C", "C")
 # show the table of counts
 count_table <- table(train$Embarked, train$Survived)
 count_table
+
+```
+```{r}
+round(count_table / apply(count_table, 1, sum), 3)
 ```
 
 ## 3. Processing data and Further EDA
-Notices, there are some useful infromation in assenger name, what is it? 1)the passenger title!(e.g. Ms, Miss, Mrs..) So, with that being said, we can use to ask some question like, is there any relationship between the passenger title and probability of survived?
-2) The surname can be useful as well. It allow us to use "surname" to represent a families. Using the sum of "sibsp" and "parch" as a new variable, we can evaluate the relationship between family size and the probabilty of being survived!
-
+Notices, there are some useful infromation in passenger name, what is it? For example: the passenger title!(e.g. Ms, Miss, Mrs..) So, we can use this information to ask some question like, is there any relationship between the passenger title and probability of survived? Also, The surname can be useful as well. It allow us to use "surname" to represent a families. 
+Now, let's create a new variables, called title.
 ### 3.1 Feature Engineer work:
 ```{r}
 # Grab title from passenger names
@@ -227,7 +229,9 @@ ggplot(full[1:891,], aes(x = Title, fill = factor(Survived))) +
 ```
 Note: we see the Mr. "Mr" are died pretty badly, which proved our previous observation that male are less likely being survived than female.
 
+
 ### 3.3 Family size Vs Survived
+Family size might be a interesting predictor for evaluating the probabilty of being survived. So, let's use the sum of "sibsp" and "parch" to create another new variable, and then we can analysis there relationship!
 Create variable Fsize, which is sum of the number of siblings/spouses and number of chldren/parens and one(The person himself)
 ```{r}
 # Create a family size variable including the passenger themselves
@@ -286,6 +290,7 @@ Because the purpose of this project is to build a logistic regression model(bina
 
 
 ```{r}
+set.seed(1)
 train <- full[1:891,]
 ## define 'Survived' to be 1 if any passenger survived; 0 if died
 train$Survived <- as.numeric(train$Survived == 1)
@@ -356,9 +361,9 @@ plot(sort(unique(rounded_age)), logit(prob_survived),
 
 
 ```{r}
-Survived_model1 <- glm(train$Survived ~ train$Age, family=binomial)
-summary(Survived_model1)
-anova(Survived_model1, test="Chisq")
+Survived_age_model <- glm(train$Survived ~ train$Age, family=binomial)
+summary(Survived_age_model)
+anova(Survived_age_model, test="Chisq")
 ```
 
 p-value(>|Z|) tells us, the coefficient for age is sig different from zero, and has a negative relationship with survived. The pr(>Chi) tells us it's useful to include Age into our model, which decreased AIC from 964.52 to 960.23.
@@ -379,10 +384,11 @@ En, looks like female has a high probability of being survived!
 
 ```{r}
 # fit the glm with Sex: 
-Survived_model1 <- glm(train$Survived ~ train$Sex, family=binomial)
-summary(Survived_model1)
-anova(Survived_model1, test="Chisq")
+Survived_sex_model <- glm(train$Survived ~ train$Sex, family=binomial)
+summary(Survived_sex_model)
+anova(Survived_sex_model, test="Chisq")
 ```
+
 p-value(>|Z|) tells us, the coefficient for age is sig different from zero, and the expected probability of being survived for male is $e^{-2.5137} * 100% = 8.097% $ less than the female in average. The pr(>Chi) tells us it's useful to include sex into our model, which reduced the AIC from 1186.7 to 917.8.
 
 ### 4.4 SLLR on Survived~Pclass
@@ -399,10 +405,10 @@ round(count_table / apply(count_table, 1, sum), 3)
 En, looks like the passenger classes does related to the probability of survived, the higher the classes and low the probability of being survived. 
 
 ```{r}
-# fit the glm with Sex: 
-Survived_model1 <- glm(train$Survived ~ train$Pclass, family=binomial)
-summary(Survived_model1)
-anova(Survived_model1, test="Chisq")
+# fit the glm with Pclass: 
+Survived_pclass_model <- glm(train$Survived ~ train$Pclass, family=binomial)
+summary(Survived_pclass_model)
+anova(Survived_pclass_model, test="Chisq")
 ```
 p-value(>|Z|) tells us, the coefficient for Pclass is sig different from zero. The pr(>Chi) tells us it's useful to include Pclass into our model, which reduced the AIC from 1186 to 1084.4.
 
@@ -422,9 +428,9 @@ En, seems like the probability of survived is increased and then decreased for t
 ```{r}
 # levels(train$Fsize) <- c("solo","double","Fsize_3","Fsize_4","large_family")
 # fit the glm with Fsize: 
-Survived_model1 <- glm(train$Survived ~ train$Fsize, family=binomial)
-summary(Survived_model1)
-anova(Survived_model1, test="Chisq")
+Survived_Fsize_model <- glm(train$Survived ~ train$Fsize, family=binomial)
+summary(Survived_Fsize_model)
+anova(Survived_Fsize_model, test="Chisq")
 ```
 p-value(>|Z|) tells us, only the coefficient for solo and Fsize_3 is sig different from zero. The pr(>Chi) tells us it's useful to include Fsize into our model, which reduced the AIC from 1186.7 to 1108.5.
 
@@ -444,23 +450,32 @@ En, seems like the probability of survived is increased and then decreased for t
 ```{r}
 # levels(train$Fsize) <- c("solo","double","Fsize_3","Fsize_4","large_family")
 # fit the glm with Fsize: 
-Survived_model1 <- glm(train$Survived ~ train$Title, family=binomial)
-summary(Survived_model1)
-anova(Survived_model1, test="Chisq")
+Survived_title_model <- glm(train$Survived ~ train$Title, family=binomial)
+summary(Survived_title_model)
+anova(Survived_title_model, test="Chisq")
 ```
 
-### 4.6 SLLR on Survived~Age + Sex
+
+
 Let's summarize the AIC for the above models: 
 * Survived~Age: 960.23
 * Survived~Sex: 917.8
 * Survived~Pclass: 1084.4
 * Survived~Fsize: 1108.5
 * Survived~Title: 886.59
+
 Seems like Survived~Title has the lowest AIC score so far, so we might want to consider it as our baseline model, and then we will build our model based on stepwise selection mechanism. [referece for stepwise](http://www.sthda.com/english/articles/37-model-selection-essentials-in-r/154-stepwise-regression-essentials-in-r/)
 
 What covariate do we have for now? (Age, Sex, Pclass, Fsize, Title, Embarked).
 However, for the sake of our time, let's build a small model at first. So we will only consider three covarate, which appears has the smallest AIC in our discovery: Age, Title, Sex
-###  SLLR on Survived~Age + Title + Sex
+### 4.6 SLLR on Survived~Title + Sex
+```{r}
+Survived_age_Title_model <- glm(train$Survived ~ train$Title+train$Sex, family=binomial)
+summary(Survived_age_Title_model)
+anova(Survived_age_Title_model, test="Chisq")
+```
+
+###4.7  SLLR on Survived~Age + Title + Sex
 ```{r echo=TRUE}
 Survived_model1 <- glm(train$Survived ~ train$Age + train$Pclass + train$Sex, family=binomial)
 summary(Survived_model1)
@@ -468,7 +483,21 @@ anova(Survived_model1, test="Chisq")
 # cov(train %>% select(c(Age, Sex, Fsize, Embarked, Fare, Ticket)))
 ```
 
-### 4.7 SLLP with interaction terms
+### 4.8 SLLP with interaction terms: Survived~Age + Title + Sex
+```{r}
+Survived_model1 <- glm(train$Survived ~ train$Title * train$Pclass * train$Sex, family=binomial)
+summary(Survived_model1)
+anova(Survived_model1, test="Chisq")
+```
+With some interaction terms, we notice that the Deviance Residual had dicreased, but not substantially. 
+I think the reason is because that there might exist a very high correlation between those variables, so not too much variance can be explained by adding new terms. Also we can see that the degree of freedom is pretty big here(over 800), so if we applied the PCA technique to reduced the amount of features/variables and then picked several most important component as our representative variables, it's possible that we could get a better predictive model!
+
+### 4.9 SLLP with interaction terms: Survived~Title + Sex + Pclass
+```{r}
+Survived_model1 <- glm(train$Survived ~ train$Title * train$Pclass * train$Sex, family=binomial)
+summary(Survived_model1)
+anova(Survived_model1, test="Chisq")
+```
 
 ## 5. Model diagnostic
 
@@ -508,6 +537,10 @@ qqnorm(pear.resids,
 qqline(pear.resids)
 
 ```
+Haha, so the residual doesn't work very well in this case, and that's because the number of success(survived), m_i = 1, for each person(i) is one, which is like Bernoulli distribution, so that's kinda of missleading.
+
+Now, there are only three things we should care about, 1)) Devidance residual, 2)df(degree of freedom), and 3)p-value (With Chi-square dist). 
+Let's use deviance table to help us figure out what is the best model here!
 
 
 

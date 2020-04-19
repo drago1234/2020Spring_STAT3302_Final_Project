@@ -54,7 +54,7 @@ full[1:891,] %>%
 
 rounded.weight <- round(train$Age*2)/2
 survive_table  <- table(train$Age, train$Survived)
-prop.weight <- (survive_table/rowSums(table.weight))[,2]
+prop.weight <- (survive_table/rowSums(train$Age))[,2]
 
 
 
