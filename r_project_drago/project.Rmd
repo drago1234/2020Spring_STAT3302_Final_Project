@@ -455,8 +455,6 @@ summary(Survived_title_model)
 anova(Survived_title_model, test="Chisq")
 ```
 
-
-
 Let's summarize the AIC for the above models: 
 * Survived~Age: 960.23
 * Survived~Sex: 917.8
@@ -477,13 +475,13 @@ anova(Survived_age_Title_model, test="Chisq")
 
 ###4.7  SLLR on Survived~Age + Title + Sex
 ```{r echo=TRUE}
-Survived_model1 <- glm(train$Survived ~ train$Age + train$Pclass + train$Sex, family=binomial)
+Survived_model1 <- glm(train$Survived ~ train$Age + train$Title + train$Sex, family=binomial)
 summary(Survived_model1)
 anova(Survived_model1, test="Chisq")
 # cov(train %>% select(c(Age, Sex, Fsize, Embarked, Fare, Ticket)))
 ```
 
-### 4.8 SLLP with interaction terms: Survived~Age + Title + Sex
+### 4.8 SLLP with interaction terms: Survived~Age * Title * Sex
 ```{r}
 Survived_model1 <- glm(train$Survived ~ train$Title * train$Pclass * train$Sex, family=binomial)
 summary(Survived_model1)
@@ -492,7 +490,7 @@ anova(Survived_model1, test="Chisq")
 With some interaction terms, we notice that the Deviance Residual had dicreased, but not substantially. 
 I think the reason is because that there might exist a very high correlation between those variables, so not too much variance can be explained by adding new terms. Also we can see that the degree of freedom is pretty big here(over 800), so if we applied the PCA technique to reduced the amount of features/variables and then picked several most important component as our representative variables, it's possible that we could get a better predictive model!
 
-### 4.9 SLLP with interaction terms: Survived~Title + Sex + Pclass
+### 4.9 SLLP with interaction terms: Survived~Title * Sex * Pclass
 ```{r}
 Survived_model1 <- glm(train$Survived ~ train$Title * train$Pclass * train$Sex, family=binomial)
 summary(Survived_model1)
